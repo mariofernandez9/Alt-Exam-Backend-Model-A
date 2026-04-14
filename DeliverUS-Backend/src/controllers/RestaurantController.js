@@ -6,10 +6,10 @@ const index = async function (req, res) {
       {
         attributes: { exclude: ['userId'] },
         include:
-      {
-        model: RestaurantCategory,
-        as: 'restaurantCategory'
-      },
+        {
+          model: RestaurantCategory,
+          as: 'restaurantCategory'
+        },
         order: [[{ model: RestaurantCategory, as: 'restaurantCategory' }, 'name', 'ASC']]
       }
     )
@@ -95,12 +95,24 @@ const destroy = async function (req, res) {
   }
 }
 
+const toggleIsUnlimited = async function (req, res) {
+  try {
+    const restaurant = await Restaurant.findByPk(req.params.restaurantId)
+    await Restaurant.update({ isUnlimited: !restaurant.isUnlimited }, { where: { id: req.params.restaurantId } })
+    const updatedRestaurant = await Restaurant.findByPk(req.params.restaurantId)
+    res.json(updatedRestaurant)
+  } catch (err) {
+    res.status(500).send(err)
+  }
+}
+
 const RestaurantController = {
   index,
   indexOwner,
   create,
   show,
   update,
-  destroy
+  destroy,
+  toggleIsUnlimited
 }
 export default RestaurantController

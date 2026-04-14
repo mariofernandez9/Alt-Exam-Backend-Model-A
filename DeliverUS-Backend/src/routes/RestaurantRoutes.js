@@ -19,6 +19,7 @@ const loadFileRoutes = function (app) {
       handleFilesUpload(['logo', 'heroImage'], process.env.RESTAURANTS_FOLDER),
       RestaurantValidation.create,
       handleValidation,
+      RestaurantMiddleware.checkUnlimitedLimit, // Al necesitar hacer uso de parte del req.body, es recomendable colocarlo después de la validación
       RestaurantController.create)
 
   app.route('/restaurants/:restaurantId')
@@ -33,6 +34,7 @@ const loadFileRoutes = function (app) {
       handleFilesUpload(['logo', 'heroImage'], process.env.RESTAURANTS_FOLDER),
       RestaurantValidation.update,
       handleValidation,
+      RestaurantMiddleware.checkUnlimitedLimit, // Al necesitar hacer uso de parte del req.body, es recomendable colocarlo después de la validación
       RestaurantController.update)
     .delete(
       isLoggedIn,
@@ -62,5 +64,14 @@ const loadFileRoutes = function (app) {
       checkEntityExists(Restaurant, 'restaurantId'),
       RestaurantMiddleware.checkRestaurantOwnership,
       OrderController.analytics)
+
+  app.route('/restaurants/:restaurantId/toggleIsUnlimited')
+    .patch(
+      isLoggedIn,
+      hasRole('owner'),
+      checkEntityExists(Restaurant, 'restaurantId'),
+      RestaurantMiddleware.checkRestaurantOwnership,
+      RestaurantMiddleware.checkToggleUnlimitedLimit,
+      RestaurantController.toggleIsUnlimited)
 }
 export default loadFileRoutes

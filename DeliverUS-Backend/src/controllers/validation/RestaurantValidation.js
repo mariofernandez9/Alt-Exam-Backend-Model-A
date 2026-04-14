@@ -11,6 +11,7 @@ const create = [
   check('shippingCosts').exists().isFloat({ min: 0 }).toFloat(),
   check('email').optional({ nullable: true, checkFalsy: true }).isString().isEmail().trim(),
   check('phone').optional({ nullable: true, checkFalsy: true }).isString().isLength({ min: 1, max: 255 }).trim(),
+  check('isUnlimited').exists().isBoolean().toBoolean(), // El enunciado no especifica si es obligatorio, se considera correcto que sea optional
   check('restaurantCategoryId').exists({ checkNull: true }).isInt({ min: 1 }).toInt(),
   check('userId').not().exists(),
   check('heroImage').custom((value, { req }) => {
@@ -35,6 +36,7 @@ const update = [
   check('shippingCosts').exists().isFloat({ min: 0 }).toFloat(),
   check('email').optional({ nullable: true, checkFalsy: true }).isString().isEmail().trim(),
   check('phone').optional({ nullable: true, checkFalsy: true }).isString().isLength({ min: 1, max: 255 }).trim(),
+  check('isUnlimited').exists().isBoolean().toBoolean(), // El enunciado no especifica si es obligatorio, se considera correcto que sea optional
   check('restaurantCategoryId').exists({ checkNull: true }).isInt({ min: 1 }).toInt(),
   check('userId').not().exists(),
   check('heroImage').custom((value, { req }) => {

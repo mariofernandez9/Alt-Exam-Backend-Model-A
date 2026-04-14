@@ -8,7 +8,7 @@ const loadModel = (sequelize, DataTypes) => {
      * This method is not a part of Sequelize lifecycle.
      * The `models/index` file will call this method automatically.
      */
-    static associate (models) {
+    static associate(models) {
       // define association here
       Restaurant.belongsTo(models.RestaurantCategory, { foreignKey: 'restaurantCategoryId', as: 'restaurantCategory' })
       Restaurant.belongsTo(models.User, { foreignKey: 'userId', as: 'user' })
@@ -16,7 +16,7 @@ const loadModel = (sequelize, DataTypes) => {
       Restaurant.hasMany(models.Order, { foreignKey: 'restaurantId', as: 'orders' })
     }
 
-    async getAverageServiceTime () {
+    async getAverageServiceTime() {
       try {
         const orders = await this.getOrders()
         const serviceTimes = orders.filter(o => o.deliveredAt).map(o => moment(o.deliveredAt).diff(moment(o.createdAt), 'minutes'))
@@ -26,15 +26,23 @@ const loadModel = (sequelize, DataTypes) => {
       }
     }
 
-    async getOrdersInLastTwoHours () {
+    async getOrdersInLastTwoHours() {
       const restaurantId = this.id
       const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000)
       const { Order } = this.sequelize.models
-      throw new Error('Not implemented')
+
+      return await Order.count({
+        where: {
+          restaurantId: restaurantId,
+          createdAt: { [Op.gte]: twoHoursAgo }
+        }
+      })
     }
 
-    async getIsClosedByLimit () {
-      throw new Error('Not implemented')
+    async getIsClosedByLimit() {
+      if (this.isUnlimited) { return false }
+      const count = await this.getOrdersInLastTwoHours()
+      return count >= 1
     }
   }
   Restaurant.init({
@@ -78,6 +86,17 @@ const loadModel = (sequelize, DataTypes) => {
       allowNull: false,
       type: DataTypes.INTEGER
     },
+    isUnlimited: {
+      allowNull: false,
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
+    },
+    ordersInLastTwoHours: {
+      type: DataTypes.VIRTUAL
+    },
+    isClosedByLimit: {
+      type: DataTypes.VIRTUAL
+    },
     createdAt: {
       allowNull: false,
       type: DataTypes.DATE,
@@ -87,19 +106,12 @@ const loadModel = (sequelize, DataTypes) => {
       allowNull: false,
       type: DataTypes.DATE,
       defaultValue: new Date()
-    },
-    ordersInLastTwoHours: {
-      type: DataTypes.VIRTUAL
-    },
-    isClosedByLimit: {
-      type: DataTypes.VIRTUAL
     }
   }, {
     sequelize,
     modelName: 'Restaurant'
   })
 
-  // Código proporcionado. No borrar.
   Restaurant.addHook('afterFind', async (results) => {
     if (!results) return
     const isArray = Array.isArray(results)
