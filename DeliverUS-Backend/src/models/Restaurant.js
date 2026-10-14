@@ -30,11 +30,18 @@ const loadModel = (sequelize, DataTypes) => {
       const restaurantId = this.id
       const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000)
       const { Order } = this.sequelize.models
-      throw new Error('Not implemented')
+      return await Order.count({
+        where: {
+          restaurantId,
+          createdAt: { [Op.gte]: twoHoursAgo }
+        }
+      })
     }
 
     async getIsClosedByLimit () {
-      throw new Error('Not implemented')
+      if (this.isUnlimited) return false
+      const count = await this.getOrdersInLastTwoHours
+      return count > 0
     }
   }
   Restaurant.init({
@@ -69,6 +76,11 @@ const loadModel = (sequelize, DataTypes) => {
         'closed',
         'temporarily closed'
       ]
+    },
+    isUnlimited: {
+      allowNull: false,
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
     },
     restaurantCategoryId: {
       allowNull: false,
